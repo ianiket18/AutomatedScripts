@@ -19,7 +19,6 @@ module GithubConnection
   def get_playbook_link(repo_name, userName = nil, playbook_name = nil)
     userName ||= @userName
     playbook_name ||= @playbook_name
-    puts playbook_name
     response = HTTP.get(@github_url + 'repos/' + userName + '/' + repo_name + '/contents/' + playbook_name)
     if response.status.code == 404
       false
