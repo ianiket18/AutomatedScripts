@@ -2,12 +2,11 @@
 
 require 'aws-sdk'
 require 'optparse'
-require 'mongo'
 require_relative 'github_api'
+require_relative 'mongo_connection'
 
 include GithubConnection
-
-Mongo::Logger.logger.level = ::Logger::FATAL
+include MongoConnection
 
 options = {}
 OptionParser.new do |opts|
@@ -25,16 +24,14 @@ end.parse!
 @userName = 'ianiket18' if @userName.nil?
 
 unless ARGV[0].nil?
-  client = Mongo::Client.new('mongodb://172.17.0.2:27017/ansible_project')
-  collection = client[:repositories]
-  resultRepo = collection.find( { repoName: ARGV[0], userName: @userName} ).first
+  query = { repoName: ARGV[0], userName: @userName}
+  repo_url = find_document('ansible_project', 'repositories', query)['gitURL']
 
-  unless resultRepo
-    repo_url = getRepoLink(ARGV[0], @userName)
+  unless repo_url
+    repo_url = get_repo_link(ARGV[0], @userName)
     if repo_url
-      collection = client[:repositories]
       doc = { repoName: ARGV[0], userName: @userName, gitURL: repo_url }
-      result = collection.insert_one(doc)
+      mongo_insert_doc('ansible_project', 'repositories', doc)
     else
       puts "No repository found, please check details."
       exit
@@ -45,6 +42,11 @@ else
   exit
 end
 
+if ARGV[1]
+  playbook_contents = get_playbook(ARGV[0], @userName, ARGV[1])
+else
+  playbook_contents = get_playbook(ARGV[0], @userName)
+end
 
 
 
