@@ -18,5 +18,11 @@ module MongoConnection
     collection = client[collection_name]
     result = collection.find( query ).first
   end
+
+  def delete_document(database_name, collection_name, query)
+    client = Mongo::Client.new(@mongo_link + database_name)
+    collection = client[collection_name]
+    result = collection.delete_one(query)
+  end
 end
 
